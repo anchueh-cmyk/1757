@@ -5,26 +5,64 @@ const USER_KEY = 'anan_current_user';
 const ALL_USERS_KEY = 'anan_all_users';
 
 export const mockDatabase = {
-  getCurrentUser: (): User | null => {
-    const data = localStorage.getItem(USER_KEY);
-    return data ? JSON.parse(data) : null;
-  },
-
-  setCurrentUser: (user: User) => {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-    const allUsers = mockDatabase.getAllUsers();
-    const index = allUsers.findIndex(u => u.id === user.id);
-    if (index > -1) {
-      allUsers[index] = user;
-    } else {
-      allUsers.push(user);
+  init: () => {
+    // 不再預設測試用戶，初始為空陣列
+    if (!localStorage.getItem(ALL_USERS_KEY)) {
+      localStorage.setItem(ALL_USERS_KEY, JSON.stringify([]));
     }
-    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(allUsers));
   },
 
   getAllUsers: (): User[] => {
     const data = localStorage.getItem(ALL_USERS_KEY);
     return data ? JSON.parse(data) : [];
+  },
+
+  findUserByIdentifier: (identifier: string): User | undefined => {
+    const users = mockDatabase.getAllUsers();
+    // 管理員是硬編碼的，不在數據庫中
+    if (identifier === 'adminalan') return undefined; 
+    return users.find(u => u.username === identifier || u.id === identifier);
+  },
+
+  register: (username: string): User | null => {
+    const users = mockDatabase.getAllUsers();
+    if (users.find(u => u.username === username)) return null;
+
+    const newUser: User = {
+      id: 'u_' + Math.random().toString(36).substr(2, 5),
+      username,
+      lastCheckIn: null,
+      streak: 0,
+      contacts: [],
+      records: []
+    };
+    
+    users.push(newUser);
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(users));
+    return newUser;
+  },
+
+  getCurrentUser: (): User | null => {
+    const data = localStorage.getItem(USER_KEY);
+    if (!data) return null;
+    const basic = JSON.parse(data);
+    if (basic.isAdmin) return basic;
+    const all = mockDatabase.getAllUsers();
+    return all.find(u => u.id === basic.id) || null;
+  },
+
+  setCurrentUser: (user: User) => {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    if (!user.isAdmin) {
+      const allUsers = mockDatabase.getAllUsers();
+      const index = allUsers.findIndex(u => u.id === user.id);
+      if (index > -1) {
+        allUsers[index] = user;
+      } else {
+        allUsers.push(user);
+      }
+      localStorage.setItem(ALL_USERS_KEY, JSON.stringify(allUsers));
+    }
   },
 
   clearCurrentUser: () => {
@@ -38,11 +76,10 @@ export const mockDatabase = {
     
     const user = users[userIndex];
     const now = Date.now();
-    const lastCheckIn = user.lastCheckIn;
     
-    if (lastCheckIn) {
+    if (user.lastCheckIn) {
       const today = new Date().toDateString();
-      const last = new Date(lastCheckIn).toDateString();
+      const last = new Date(user.lastCheckIn).toDateString();
       if (today === last) return user;
     }
 
@@ -54,28 +91,29 @@ export const mockDatabase = {
     };
 
     let newStreak = 1;
-    if (lastCheckIn) {
+    if (user.lastCheckIn) {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      const wasYesterday = new Date(lastCheckIn).toDateString() === yesterday.toDateString();
-      if (wasYesterday) newStreak = user.streak + 1;
-      else if (new Date(lastCheckIn).toDateString() === new Date().toDateString()) newStreak = user.streak;
+      const wasYesterday = new Date(user.lastCheckIn).toDateString() === yesterday.toDateString();
+      if (wasYesterday) {
+        newStreak = user.streak + 1;
+      }
     }
 
-    const updatedUser: User = {
-      ...user,
-      lastCheckIn: now,
-      streak: newStreak,
-      records: [newRecord, ...user.records].slice(0, 30),
-    };
+    user.lastCheckIn = now;
+    user.streak = newStreak;
+    user.records = [newRecord, ...user.records].slice(0, 30);
 
-    mockDatabase.setCurrentUser(updatedUser);
-    return updatedUser;
+    users[userIndex] = user;
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(users));
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    return user;
   },
 
   addContact: (userId: string, name: string, contact: string, type: 'email' | 'phone'): User | null => {
-    const user = mockDatabase.getCurrentUser();
-    if (!user || user.id !== userId) return null;
+    const users = mockDatabase.getAllUsers();
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx === -1) return null;
 
     const newContact: EmergencyContact = {
       id: Math.random().toString(36).substr(2, 9),
@@ -84,25 +122,20 @@ export const mockDatabase = {
       type
     };
 
-    const updatedUser = {
-      ...user,
-      contacts: [...user.contacts, newContact]
-    };
-
-    mockDatabase.setCurrentUser(updatedUser);
-    return updatedUser;
+    users[idx].contacts.push(newContact);
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(users));
+    localStorage.setItem(USER_KEY, JSON.stringify(users[idx]));
+    return users[idx];
   },
 
   removeContact: (userId: string, contactId: string): User | null => {
-    const user = mockDatabase.getCurrentUser();
-    if (!user || user.id !== userId) return null;
+    const users = mockDatabase.getAllUsers();
+    const idx = users.findIndex(u => u.id === userId);
+    if (idx === -1) return null;
 
-    const updatedUser = {
-      ...user,
-      contacts: user.contacts.filter(c => c.id !== contactId)
-    };
-
-    mockDatabase.setCurrentUser(updatedUser);
-    return updatedUser;
+    users[idx].contacts = users[idx].contacts.filter(c => c.id !== contactId);
+    localStorage.setItem(ALL_USERS_KEY, JSON.stringify(users));
+    localStorage.setItem(USER_KEY, JSON.stringify(users[idx]));
+    return users[idx];
   }
 };

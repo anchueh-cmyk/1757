@@ -1,10 +1,13 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { mockDatabase } from '../services/mockDatabase';
+import { notificationService } from '../services/notificationService';
 import { STATUS_MAP } from '../constants';
 
 const AdminDashboard: React.FC = () => {
   const users = mockDatabase.getAllUsers();
+  const [isChecking, setIsChecking] = useState(false);
+  const [log, setLog] = useState<string[]>([]);
 
   const stats = useMemo(() => {
     const now = Date.now();
@@ -26,12 +29,61 @@ const AdminDashboard: React.FC = () => {
     };
   }, [users]);
 
+  // 模擬伺服器定時任務：檢查所有人，超時的就發警告信
+  const runHeartbeatCheck = async () => {
+    setIsChecking(true);
+    setLog(['啟動心跳檢測任務...', `當前用戶數: ${stats.total}`]);
+    
+    const now = Date.now();
+    const twentyFourHoursAgo = now - 24 * 60 * 60 * 1000;
+    let alertCount = 0;
+
+    for (const u of users) {
+      if (u.isAdmin) continue;
+      
+      const isLate = !u.lastCheckIn || u.lastCheckIn < twentyFourHoursAgo;
+      if (isLate && u.contacts.length > 0) {
+        setLog(prev => [...prev, `⚠️ 用戶 ${u.username} 超時，正在發送警告郵件...`]);
+        await notificationService.sendAlertNotification(u);
+        alertCount++;
+      }
+    }
+
+    setLog(prev => [...prev, `任務完成。發送了 ${alertCount} 封警報郵件。`, '請查看瀏覽器控制台 (Console) 獲取詳細日誌。']);
+    setIsChecking(false);
+    
+    setTimeout(() => setLog([]), 8000);
+  };
+
   return (
     <div className="w-full max-w-6xl px-4 py-8 animate-in fade-in slide-in-from-bottom-5 duration-700 mx-auto">
-      <div className="mb-10 text-center sm:text-left">
-        <h2 className="text-4xl font-light text-slate-800 tracking-tight">系統管理中心</h2>
-        <p className="text-slate-400 mt-2 font-light">即時監控所有用戶的存活狀態與簽到記錄</p>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-10 space-y-4 sm:space-y-0 text-center sm:text-left">
+        <div>
+          <h2 className="text-4xl font-light text-slate-800 tracking-tight">系統管理中心</h2>
+          <p className="text-slate-400 mt-2 font-light">即時監控所有用戶的存活狀態與簽到記錄</p>
+        </div>
+        
+        <button 
+          onClick={runHeartbeatCheck}
+          disabled={isChecking}
+          className="px-6 py-3 bg-slate-800 text-white rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center space-x-2 disabled:opacity-50"
+        >
+          {isChecking ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+          ) : (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          )}
+          <span>{isChecking ? '任務執行中' : '手動執行心跳檢測'}</span>
+        </button>
       </div>
+
+      {log.length > 0 && (
+        <div className="mb-8 p-6 bg-slate-900 rounded-[24px] text-blue-400 font-mono text-xs space-y-1 animate-in slide-in-from-top-4">
+          {log.map((line, i) => <div key={i}>{line}</div>)}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
         <div className="glass-card rounded-[32px] p-8 border-b-4 border-b-blue-400 transition-all duration-300 hover:shadow-lg">

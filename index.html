@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -11,46 +12,128 @@
     <style>
         body {
             font-family: 'Inter', 'Noto+Sans+TC', sans-serif;
-            background: linear-gradient(135deg, #fff5f5 0%, #fffaf0 100%);
+            background: #fffafa; /* 極淡的暖白基底 */
             min-height: 100vh;
             margin: 0;
+            overflow-x: hidden;
         }
+
+        /* 呼吸燈背景容器 */
+        .breathing-bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background: #fffaf0; /* 基調色彩 */
+            overflow: hidden;
+        }
+
+        /* 核心呼吸光暈層 - 主色調 */
+        .glow-layer-primary {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            width: 140vw;
+            height: 140vh;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle at center, rgba(251, 146, 60, 0.12) 0%, rgba(251, 146, 60, 0) 70%);
+            animation: breathing-slow 18s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        /* 次要呼吸光暈層 - 輔助色調 */
+        .glow-layer-secondary {
+            position: absolute;
+            top: 60%;
+            left: 30%;
+            width: 120vw;
+            height: 120vh;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle at center, rgba(244, 63, 94, 0.05) 0%, rgba(244, 63, 94, 0) 60%);
+            animation: breathing-slow 24s ease-in-out infinite reverse;
+            pointer-events: none;
+        }
+
+        /* 極慢速呼吸動畫 */
+        @keyframes breathing-slow {
+            0%, 100% {
+                opacity: 0.45;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                opacity: 0.9;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+
+        /* 微交互組件類 */
         .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.02);
         }
+
+        /* 按鈕通用動畫：平滑過渡 */
+        .btn-interact {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .btn-interact:hover {
+            transform: translateY(-2px);
+        }
+        .btn-interact:active {
+            transform: translateY(1px) scale(0.96);
+        }
+
+        /* 簽到成功的星星噴灑視覺效果（示意類） */
+        @keyframes success-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); filter: brightness(1.2); }
+            100% { transform: scale(1); }
+        }
+        .animate-success-pop {
+            animation: success-pop 0.6s ease-out forwards;
+        }
+
         @keyframes pulse-soft {
             0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
+            50% { transform: scale(1.03); opacity: 0.9; }
         }
+
         .animate-pulse-soft {
-            animation: pulse-soft 3s infinite ease-in-out;
+            animation: pulse-soft 4s infinite ease-in-out;
         }
+
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
+
         .scrollbar-hide {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
     </style>
     <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.3.1",
-        "react/": "https://esm.sh/react@18.3.1/",
-        "react-dom": "https://esm.sh/react-dom@18.3.1",
-        "react-dom/": "https://esm.sh/react-dom@18.3.1/",
-        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-        "react-router-dom": "https://esm.sh/react-router-dom@6.26.2?deps=react@18.3.1,react-dom@18.3.1",
-        "recharts": "https://esm.sh/recharts@2.12.7?deps=react@18.3.1,react-dom@18.3.1"
-      }
-    }
-    </script>
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react/": "https://esm.sh/react@18.3.1/",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+    "react-router-dom": "https://esm.sh/react-router-dom@6.26.2?deps=react@18.3.1,react-dom@18.3.1",
+    "recharts": "https://esm.sh/recharts@2.12.7?deps=react@18.3.1,react-dom@18.3.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+  }
+}
+</script>
 </head>
 <body class="text-slate-800">
-    <div id="root"></div>
-     <script type="module" src="/index.tsx"></script>
+    <div class="breathing-bg-overlay">
+        <div class="glow-layer-primary"></div>
+        <div class="glow-layer-secondary"></div>
+    </div>
+    <div id="root" class="relative z-10"></div>
 </body>
 </html>

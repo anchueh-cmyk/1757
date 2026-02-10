@@ -17,6 +17,9 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
+    // 初始化數據庫
+    mockDatabase.init();
+    
     const savedUser = mockDatabase.getCurrentUser();
     if (savedUser) {
       setAuth({ user: savedUser, isAuthenticated: true });
