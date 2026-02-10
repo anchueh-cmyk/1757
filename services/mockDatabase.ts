@@ -12,7 +12,6 @@ export const mockDatabase = {
 
   setCurrentUser: (user: User) => {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
-    // Update in all users too
     const allUsers = mockDatabase.getAllUsers();
     const index = allUsers.findIndex(u => u.id === user.id);
     if (index > -1) {
@@ -33,17 +32,18 @@ export const mockDatabase = {
   },
 
   checkIn: (userId: string, status: UserStatus, message: string): User | null => {
-    const user = mockDatabase.getCurrentUser();
-    if (!user || user.id !== userId) return null;
-
+    const users = mockDatabase.getAllUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+    if (userIndex === -1) return null;
+    
+    const user = users[userIndex];
     const now = Date.now();
     const lastCheckIn = user.lastCheckIn;
     
-    // Check if already checked in today (roughly)
     if (lastCheckIn) {
       const today = new Date().toDateString();
       const last = new Date(lastCheckIn).toDateString();
-      if (today === last) return user; // Already done
+      if (today === last) return user;
     }
 
     const newRecord: CheckInRecord = {
@@ -53,7 +53,6 @@ export const mockDatabase = {
       message
     };
 
-    // Streak logic: if last check-in was yesterday, increment. If older, reset to 1.
     let newStreak = 1;
     if (lastCheckIn) {
       const yesterday = new Date();
@@ -67,7 +66,7 @@ export const mockDatabase = {
       ...user,
       lastCheckIn: now,
       streak: newStreak,
-      records: [newRecord, ...user.records].slice(0, 30), // Keep last 30
+      records: [newRecord, ...user.records].slice(0, 30),
     };
 
     mockDatabase.setCurrentUser(updatedUser);

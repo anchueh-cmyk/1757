@@ -34,7 +34,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onUpdate }) => {
     }, 1200);
   };
 
-  // Prepare chart data
   const chartData = [...user.records]
     .reverse()
     .slice(-7)
@@ -44,8 +43,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onUpdate }) => {
     }));
 
   return (
-    <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-bottom-10 duration-700">
-      {/* Left Panel: Stats & Check-in Status */}
+    <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-bottom-10 duration-700 mx-auto px-4">
       <div className="md:col-span-2 space-y-6">
         <div className="glass-card rounded-[32px] p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-full blur-3xl opacity-50 -mr-10 -mt-10"></div>
@@ -73,7 +71,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onUpdate }) => {
                   <button
                     key={s}
                     onClick={() => setStatus(s)}
-                    className={`py-3 px-2 rounded-2xl border text-sm transition-all ${
+                    className={`py-3 px-2 rounded-2xl border text-sm transition-all duration-300 ${
                       status === s 
                         ? 'bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-200' 
                         : 'bg-white/50 border-slate-100 text-slate-500 hover:border-orange-200'
@@ -113,7 +111,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onUpdate }) => {
             </div>
           ) : (
             <div className="py-12 text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-green-50 rounded-full mb-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-green-50 rounded-full mb-6 animate-in zoom-in duration-500">
                 <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -124,7 +122,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onUpdate }) => {
           )}
         </div>
 
-        {/* Status Trends */}
         <div className="glass-card rounded-[32px] p-8 h-64">
           <h3 className="text-sm font-medium text-slate-400 mb-6">最近 7 天狀態趨勢</h3>
           {chartData.length > 1 ? (
@@ -154,13 +151,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onUpdate }) => {
         </div>
       </div>
 
-      {/* Right Panel: Recent Records */}
       <div className="space-y-6">
-        <div className="glass-card rounded-[32px] p-6 h-full flex flex-col">
+        <div className="glass-card rounded-[32px] p-6 h-full flex flex-col min-h-[400px]">
           <h3 className="text-sm font-medium text-slate-400 mb-6 px-2">簽到日誌</h3>
           <div className="space-y-4 overflow-y-auto pr-1 flex-grow scrollbar-hide">
             {user.records.length > 0 ? user.records.map((record) => (
-              <div key={record.id} className="p-4 bg-white/40 rounded-2xl border border-white/50 transition-hover hover:bg-white/60">
+              <div key={record.id} className="p-4 bg-white/40 rounded-2xl border border-white/50 transition-all hover:bg-white/60 hover:shadow-sm">
                 <div className="flex justify-between items-start mb-2">
                   <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase border ${STATUS_MAP[record.status].color}`}>
                     {record.status}

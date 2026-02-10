@@ -5,6 +5,7 @@ import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import ProfilePage from './pages/ProfilePage';
 import FriendsPage from './pages/FriendsPage';
+import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
 import { User, AuthState } from './types';
 import { mockDatabase } from './services/mockDatabase';
@@ -15,7 +16,6 @@ const App: React.FC = () => {
     isAuthenticated: false,
   });
 
-  // Load user from mock "persistence" on mount
   useEffect(() => {
     const savedUser = mockDatabase.getCurrentUser();
     if (savedUser) {
@@ -41,8 +41,8 @@ const App: React.FC = () => {
   return (
     <HashRouter>
       <div className="min-h-screen flex flex-col">
-        {auth.isAuthenticated && <Navbar onLogout={handleLogout} />}
-        <main className="flex-grow flex flex-col items-center justify-center p-4">
+        {auth.isAuthenticated && <Navbar onLogout={handleLogout} user={auth.user} />}
+        <main className="flex-grow flex flex-col items-center justify-center py-4">
           <Routes>
             <Route 
               path="/login" 
@@ -56,17 +56,21 @@ const App: React.FC = () => {
               path="/friends" 
               element={auth.isAuthenticated ? <FriendsPage user={auth.user!} onUpdate={refreshUser} /> : <Navigate to="/login" />} 
             />
-             <Route 
+            <Route 
               path="/profile" 
               element={auth.isAuthenticated ? <ProfilePage user={auth.user!} /> : <Navigate to="/login" />} 
             />
+            <Route 
+              path="/admin" 
+              element={auth.isAuthenticated && auth.user?.isAdmin ? <AdminDashboard /> : <Navigate to="/login" />} 
+            />
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
         
-        {/* Heartbeat Simulation Footer */}
         {auth.isAuthenticated && (
-          <footer className="w-full text-center py-4 text-xs text-slate-400 opacity-60">
-            安安系統運行中 · 守護您的平安
+          <footer className="w-full text-center py-6 text-[10px] text-slate-400 opacity-60 tracking-widest font-light">
+            AN-AN SYSTEM · 安全守護中 · 平安每一天
           </footer>
         )}
       </div>

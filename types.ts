@@ -16,7 +16,7 @@ export interface CheckInRecord {
 export interface EmergencyContact {
   id: string;
   name: string;
-  contact: string; // Email or Phone
+  contact: string;
   type: 'email' | 'phone';
 }
 
@@ -27,6 +27,7 @@ export interface User {
   streak: number;
   contacts: EmergencyContact[];
   records: CheckInRecord[];
+  isAdmin?: boolean;
 }
 
 export interface AuthState {

@@ -1,9 +1,7 @@
 
-import React from 'react';
-
 export const COLORS = {
-  primary: '#f97316', // Warm orange
-  secondary: '#f43f5e', // Soft rose
+  primary: '#f97316',
+  secondary: '#f43f5e',
   bgStart: '#fff5f5',
   bgEnd: '#fffaf0',
 };

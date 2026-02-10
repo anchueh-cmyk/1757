@@ -9,7 +9,7 @@ interface AuthPageProps {
 const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
   const [isRegister, setIsRegister] = useState(false);
   const [formData, setFormData] = useState({
-    identifier: '', // Email or Phone
+    identifier: '',
     password: '',
     username: ''
   });
@@ -19,23 +19,36 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate network delay
     setTimeout(() => {
-      const mockUser: User = {
-        id: 'u_' + Math.random().toString(36).substr(2, 5),
-        username: formData.username || formData.identifier.split('@')[0],
-        lastCheckIn: null,
-        streak: 0,
-        contacts: [],
-        records: []
-      };
-      onLogin(mockUser);
+      // 管理員帳號檢查
+      if (formData.identifier === 'adminalan' && formData.password === 'acc!@1757') {
+        const adminUser: User = {
+          id: 'admin_001',
+          username: '管理員 Alan',
+          lastCheckIn: null,
+          streak: 0,
+          contacts: [],
+          records: [],
+          isAdmin: true
+        };
+        onLogin(adminUser);
+      } else {
+        const mockUser: User = {
+          id: 'u_' + Math.random().toString(36).substr(2, 5),
+          username: formData.username || formData.identifier.split('@')[0],
+          lastCheckIn: null,
+          streak: 0,
+          contacts: [],
+          records: []
+        };
+        onLogin(mockUser);
+      }
       setLoading(false);
     }, 800);
   };
 
   return (
-    <div className="w-full max-w-md p-8 glass-card rounded-3xl shadow-xl animate-in fade-in zoom-in duration-500">
+    <div className="w-full max-w-md p-8 glass-card rounded-3xl shadow-xl animate-in fade-in zoom-in duration-500 mx-auto">
       <div className="text-center mb-10">
         <h2 className="text-4xl font-light text-slate-800 tracking-tight">
           {isRegister ? '歡迎加入' : '安安，好久不見'}
@@ -60,18 +73,18 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
           </div>
         )}
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1 ml-1">手機號或郵箱</label>
+          <label className="block text-xs font-medium text-slate-500 mb-1 ml-1">帳號 / 郵箱</label>
           <input
             type="text"
             required
-            placeholder="example@mail.com"
+            placeholder="請輸入帳號"
             className="w-full px-5 py-4 bg-white/50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-200 transition-all placeholder:text-slate-300"
             value={formData.identifier}
             onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1 ml-1">驗證碼 / 密碼</label>
+          <label className="block text-xs font-medium text-slate-500 mb-1 ml-1">密碼</label>
           <input
             type="password"
             required
